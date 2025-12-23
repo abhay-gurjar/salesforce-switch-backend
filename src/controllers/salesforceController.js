@@ -1,5 +1,9 @@
 const axios = require("axios");
-const { getConnection } = require("../config/salesforce");
+const {
+  setConnection,
+  getConnection,
+  clearConnection,
+} = require("../config/salesforce");
 
 const login = (req, res) => {
   const url =
@@ -26,26 +30,17 @@ const callback = async (req, res) => {
     }
   );
 
-  req.session.sfAuth = {
-    accessToken: tokenRes.data.access_token,
-    instanceUrl: tokenRes.data.instance_url,
-  };
+  setConnection(
+    tokenRes.data.instance_url,
+    tokenRes.data.access_token
+  );
 
-  req.session.save(() => {
-    res.redirect(`${process.env.FRONTEND_URL}/switch`);
-  });
-};
-
-const me = (req, res) => {
-  if (req.session && req.session.sfAuth) {
-    return res.json({ authenticated: true });
-  }
-  res.status(401).json({ authenticated: false });
+  res.redirect(`${process.env.FRONTEND_URL}/switch`);
 };
 
 const getValidationRules = async (req, res) => {
-  const conn = getConnection(req);
-  if (!conn) return res.status(401).json({ error: "Not authenticated" });
+  const conn = getConnection();
+  if (!conn) return res.status(401).json({ error: "Not logged in" });
 
   const result = await conn.tooling.query(`
     SELECT ValidationName, Active
@@ -57,21 +52,21 @@ const getValidationRules = async (req, res) => {
 };
 
 const deployChanges = async (req, res) => {
-  const conn = getConnection(req);
-  if (!conn) return res.status(401).json({ error: "Not authenticated" });
+  const conn = getConnection();
+  if (!conn) return res.status(401).json({ error: "Not logged in" });
 
-  const rulesState = req.body.rules;
+  const rules = req.body.rules;
 
   const metadata = await conn.metadata.read(
     "ValidationRule",
-    rulesState.map((r) => `Account.${r.name}`)
+    rules.map(r => `Account.${r.name}`)
   );
 
-  const updates = metadata.map((rule) => {
-    const state = rulesState.find(
-      (r) => r.name === rule.fullName.split(".")[1]
+  const updates = metadata.map(rule => {
+    const match = rules.find(
+      r => r.name === rule.fullName.split(".")[1]
     );
-    rule.active = state.active;
+    rule.active = match.active;
     return rule;
   });
 
@@ -81,16 +76,13 @@ const deployChanges = async (req, res) => {
 };
 
 const logout = (req, res) => {
-  req.session.regenerate(() => {
-    res.clearCookie("sf-switch-session");
-    res.json({ success: true });
-  });
+  clearConnection();
+  res.redirect(`${process.env.FRONTEND_URL}/`);
 };
 
 module.exports = {
   login,
   callback,
-  me,
   getValidationRules,
   deployChanges,
   logout,
