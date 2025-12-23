@@ -29,7 +29,8 @@ const callback = async (req, res) => {
 
   setConnection(tokenRes.data.instance_url, tokenRes.data.access_token);
 
-  res.redirect("http://localhost:3000/switch");
+ res.redirect(`${process.env.FRONTEND_URL}/switch`);
+
 };
 
 const getValidationRules = async (req, res) => {
@@ -66,7 +67,7 @@ const deployChanges = async (req, res) => {
 
 const logout = (req, res) => {
   setConnection(null, null);
-  res.redirect("http://localhost:3000/");
+  res.redirect(`${process.env.FRONTEND_URL}/`);
 };
 
 module.exports = {
