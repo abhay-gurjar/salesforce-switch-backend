@@ -24,10 +24,13 @@ app.use(
     secret: "sf-switch-secret",
     resave: false,
     saveUninitialized: false,
+    rolling: true,
+    proxy: true,
     cookie: {
       httpOnly: true,
       secure: true,
       sameSite: "none",
+      maxAge: 1000 * 60 * 60,
     },
   })
 );
