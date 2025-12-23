@@ -31,7 +31,9 @@ const callback = async (req, res) => {
     instanceUrl: tokenRes.data.instance_url,
   };
 
-  res.redirect(`${process.env.FRONTEND_URL}/switch`);
+  req.session.save(() => {
+    res.redirect(`${process.env.FRONTEND_URL}/switch`);
+  });
 };
 
 const me = (req, res) => {
@@ -79,9 +81,10 @@ const deployChanges = async (req, res) => {
 };
 
 const logout = (req, res) => {
-  req.session = null;
-  res.clearCookie("connect.sid");
-  res.json({ success: true });
+  req.session.destroy(() => {
+    res.clearCookie("sf-switch-session");
+    res.json({ success: true });
+  });
 };
 
 module.exports = {
