@@ -1,14 +1,16 @@
 const jsforce = require("jsforce");
 
-let connection = null;
+const getConnection = (req) => {
+  if (!req.session || !req.session.sfAuth) {
+    return null;
+  }
 
-const setConnection = (instanceUrl, accessToken) => {
-  connection = new jsforce.Connection({
+  const { instanceUrl, accessToken } = req.session.sfAuth;
+
+  return new jsforce.Connection({
     instanceUrl,
     accessToken,
   });
 };
 
-const getConnection = () => connection;
-
-module.exports = { setConnection, getConnection };
+module.exports = { getConnection };

@@ -1,13 +1,12 @@
 const axios = require("axios");
-const { setConnection, getConnection } = require("../config/salesforce");
+const { getConnection } = require("../config/salesforce");
 
 const login = (req, res) => {
   const url =
     "https://login.salesforce.com/services/oauth2/authorize" +
     "?response_type=code" +
     "&client_id=" + process.env.CLIENT_ID +
-    "&redirect_uri=" + encodeURIComponent(process.env.REDIRECT_URI) +
-    "&prompt=login";
+    "&redirect_uri=" + encodeURIComponent(process.env.REDIRECT_URI);
 
   res.redirect(url);
 };
@@ -27,24 +26,31 @@ const callback = async (req, res) => {
     }
   );
 
-  setConnection(tokenRes.data.instance_url, tokenRes.data.access_token);
+  req.session.sfAuth = {
+    accessToken: tokenRes.data.access_token,
+    instanceUrl: tokenRes.data.instance_url,
+  };
 
- res.redirect(`${process.env.FRONTEND_URL}/switch`);
-
+  res.redirect(`${process.env.FRONTEND_URL}/switch`);
 };
 
 const getValidationRules = async (req, res) => {
-  const conn = getConnection();
+  const conn = getConnection(req);
+  if (!conn) return res.status(401).json({ error: "Not authenticated" });
+
   const result = await conn.tooling.query(`
     SELECT ValidationName, Active
     FROM ValidationRule
     WHERE EntityDefinition.QualifiedApiName = 'Account'
   `);
+
   res.json(result.records);
 };
 
 const deployChanges = async (req, res) => {
-  const conn = getConnection();
+  const conn = getConnection(req);
+  if (!conn) return res.status(401).json({ error: "Not authenticated" });
+
   const rulesState = req.body.rules;
 
   const metadata = await conn.metadata.read(
@@ -66,8 +72,9 @@ const deployChanges = async (req, res) => {
 };
 
 const logout = (req, res) => {
-  setConnection(null, null);
-  res.redirect(`${process.env.FRONTEND_URL}/`);
+  req.session.destroy(() => {
+    res.redirect(`${process.env.FRONTEND_URL}/`);
+  });
 };
 
 module.exports = {
