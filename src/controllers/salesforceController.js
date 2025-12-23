@@ -34,6 +34,13 @@ const callback = async (req, res) => {
   res.redirect(`${process.env.FRONTEND_URL}/switch`);
 };
 
+const me = (req, res) => {
+  if (req.session && req.session.sfAuth) {
+    return res.json({ authenticated: true });
+  }
+  return res.status(401).json({ authenticated: false });
+};
+
 const getValidationRules = async (req, res) => {
   const conn = getConnection(req);
   if (!conn) return res.status(401).json({ error: "Not authenticated" });
@@ -72,14 +79,15 @@ const deployChanges = async (req, res) => {
 };
 
 const logout = (req, res) => {
-  req.session.destroy(() => {
-    res.redirect(`${process.env.FRONTEND_URL}/`);
-  });
+  req.session = null;
+  res.clearCookie("connect.sid");
+  res.json({ success: true });
 };
 
 module.exports = {
   login,
   callback,
+  me,
   getValidationRules,
   deployChanges,
   logout,

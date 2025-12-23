@@ -1,15 +1,11 @@
 const jsforce = require("jsforce");
 
 const getConnection = (req) => {
-  if (!req.session || !req.session.sfAuth) {
-    return null;
-  }
-
-  const { instanceUrl, accessToken } = req.session.sfAuth;
+  if (!req.session || !req.session.sfAuth) return null;
 
   return new jsforce.Connection({
-    instanceUrl,
-    accessToken,
+    instanceUrl: req.session.sfAuth.instanceUrl,
+    accessToken: req.session.sfAuth.accessToken,
   });
 };
 
