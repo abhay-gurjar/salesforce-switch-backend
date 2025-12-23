@@ -40,7 +40,7 @@ const me = (req, res) => {
   if (req.session && req.session.sfAuth) {
     return res.json({ authenticated: true });
   }
-  return res.status(401).json({ authenticated: false });
+  res.status(401).json({ authenticated: false });
 };
 
 const getValidationRules = async (req, res) => {
@@ -64,12 +64,12 @@ const deployChanges = async (req, res) => {
 
   const metadata = await conn.metadata.read(
     "ValidationRule",
-    rulesState.map(r => `Account.${r.name}`)
+    rulesState.map((r) => `Account.${r.name}`)
   );
 
-  const updates = metadata.map(rule => {
+  const updates = metadata.map((rule) => {
     const state = rulesState.find(
-      r => r.name === rule.fullName.split(".")[1]
+      (r) => r.name === rule.fullName.split(".")[1]
     );
     rule.active = state.active;
     return rule;
@@ -81,7 +81,7 @@ const deployChanges = async (req, res) => {
 };
 
 const logout = (req, res) => {
-  req.session.destroy(() => {
+  req.session.regenerate(() => {
     res.clearCookie("sf-switch-session");
     res.json({ success: true });
   });
