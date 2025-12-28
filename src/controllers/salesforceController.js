@@ -9,6 +9,7 @@ const login = (req, res) => {
   const url =
     "https://login.salesforce.com/services/oauth2/authorize" +
     "?response_type=code" +
+    "&prompt=login" +
     "&client_id=" + process.env.CLIENT_ID +
     "&redirect_uri=" + encodeURIComponent(process.env.REDIRECT_URI);
 
@@ -78,7 +79,7 @@ const deployChanges = async (req, res) => {
 const logout = async (req, res) => {
   const conn = getConnection();
 
-  if (conn?.accessToken) {
+  if (conn && conn.accessToken) {
     try {
       await axios.post(
         "https://login.salesforce.com/services/oauth2/revoke",
@@ -93,7 +94,7 @@ const logout = async (req, res) => {
   }
 
   clearConnection();
-  res.json({ success: true });
+  res.redirect(process.env.FRONTEND_URL);
 };
 
 module.exports = {
