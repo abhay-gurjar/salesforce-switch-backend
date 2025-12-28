@@ -3,6 +3,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 const salesforceRoutes = require("./src/routes/salesforceRoutes");
+const { callback } = require("./src/controllers/salesforceController");
 
 const app = express();
 
@@ -13,7 +14,8 @@ app.get("/", (req, res) => {
   res.send("Salesforce Switch Backend is running");
 });
 
-app.use("/", salesforceRoutes);
+app.get("/oauth/callback", callback);
+
 app.use("/api", salesforceRoutes);
 
 module.exports = app;
