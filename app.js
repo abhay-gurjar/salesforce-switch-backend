@@ -13,6 +13,7 @@ app.get("/", (req, res) => {
   res.send("Salesforce Switch Backend is running");
 });
 
+app.use("/", salesforceRoutes);
 app.use("/api", salesforceRoutes);
 
 module.exports = app;
