@@ -1,11 +1,19 @@
 const express = require("express");
-const router = express.Router();
-const controller = require("../controllers/salesforceController");
+const {
+  login,
+  callback,
+  getValidationRules,
+  deployChanges,
+  logout,
+} = require("../controllers/salesforceController");
 
-router.get("/login", controller.login);
-router.get("/callback", controller.callback);
-router.get("/rules", controller.getValidationRules);
-router.post("/deploy", controller.deployChanges);
-router.post("/logout", controller.logout);
+const router = express.Router();
+
+router.get("/login", login);
+router.get("/oauth/callback", callback);
+router.get("/validation-rules", getValidationRules);
+router.post("/deploy", deployChanges);
+router.get("/logout", logout);
+router.post("/logout", logout);
 
 module.exports = router;
