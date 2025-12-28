@@ -84,17 +84,13 @@ const logout = async (req, res) => {
       await axios.post(
         "https://login.salesforce.com/services/oauth2/revoke",
         null,
-        {
-          params: {
-            token: conn.accessToken,
-          },
-        }
+        { params: { token: conn.accessToken } }
       );
     } catch (e) {}
   }
 
   clearConnection();
-  res.redirect(process.env.FRONTEND_URL);
+  res.json({ success: true });
 };
 
 module.exports = {
