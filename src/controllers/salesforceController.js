@@ -59,12 +59,12 @@ const deployChanges = async (req, res) => {
 
   const metadata = await conn.metadata.read(
     "ValidationRule",
-    rules.map(r => `Account.${r.name}`)
+    rules.map((r) => `Account.${r.name}`)
   );
 
-  const updates = metadata.map(rule => {
+  const updates = metadata.map((rule) => {
     const match = rules.find(
-      r => r.name === rule.fullName.split(".")[1]
+      (r) => r.name === rule.fullName.split(".")[1]
     );
     rule.active = match.active;
     return rule;
@@ -75,9 +75,25 @@ const deployChanges = async (req, res) => {
   res.json({ success: true });
 };
 
-const logout = (req, res) => {
+const logout = async (req, res) => {
+  const conn = getConnection();
+
+  if (conn?.accessToken) {
+    try {
+      await axios.post(
+        "https://login.salesforce.com/services/oauth2/revoke",
+        null,
+        {
+          params: {
+            token: conn.accessToken,
+          },
+        }
+      );
+    } catch (e) {}
+  }
+
   clearConnection();
-  res.redirect(`${process.env.FRONTEND_URL}/`);
+  res.json({ success: true });
 };
 
 module.exports = {
